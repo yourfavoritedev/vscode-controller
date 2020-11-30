@@ -55,13 +55,9 @@ func getSelectedRow(rows []string, value string) int {
 
 // ThemeShuffler renders a list of themes for the user to select
 func ThemeShuffler(eventChannel chan string) (*widgets.List, func() string) {
-	var x1, y1, x2, y2 int = 0, 2, 30, 12
+	var x1, y1, x2, y2 int = 0, 2, 30, 10
 	// create theme list
-	var rows []string
-	for k := range themes.AllThemes {
-		rows = append(rows, k)
-	}
-
+	var rows = themes.AllThemes
 	themesList := widgets.NewList()
 	themesList.Title = "Themes"
 	themesList.Rows = rows
@@ -103,13 +99,9 @@ func ThemeShuffler(eventChannel chan string) (*widgets.List, func() string) {
 
 // FontShuffler renders a list of fonts for the user to select
 func FontShuffler(eventChannel chan string) (*widgets.List, func() string) {
-	var x1, y1, x2, y2 int = 33, 2, 63, 12
+	var x1, y1, x2, y2 int = 33, 2, 63, 10
 	// create font list
-	var rows []string
-	for k := range fonts.AllFonts {
-		rows = append(rows, k)
-	}
-
+	var rows = fonts.AllFonts
 	fontsList := widgets.NewList()
 	fontsList.Title = "Font Family"
 	fontsList.Rows = rows
@@ -151,7 +143,7 @@ func FontShuffler(eventChannel chan string) (*widgets.List, func() string) {
 
 // FontSizeSetter renders a list of sizes for the user to select
 func FontSizeSetter(eventChannel chan string) (*widgets.List, func() string) {
-	var x1, y1, x2, y2 int = 66, 2, 96, 12
+	var x1, y1, x2, y2 int = 66, 2, 96, 10
 	//create size list
 	rows := make([]string, 29, 29)
 	for i := 8; i < 37; i++ {
