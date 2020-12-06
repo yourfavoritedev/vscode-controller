@@ -80,7 +80,7 @@ func toggleOpacity(key string) float64 {
 
 // ThemeShuffler renders a list of themes for the user to select
 func ThemeShuffler() (*widgets.List, func() string) {
-	var x1, y1, x2, y2 int = 0, 2, 30, 10
+	var x1, y1, x2, y2 int = 0, 2, 30, 12
 	// create theme list
 	var rows = themes.AllThemes
 	themesList := widgets.NewList()
@@ -97,6 +97,7 @@ func ThemeShuffler() (*widgets.List, func() string) {
 	themesList.BorderStyle.Fg = ui.ColorWhite
 
 	setActiveComponent := func() string {
+		fmt.Println("ThemeShuffler is active")
 		uiEvents := ui.PollEvents()
 
 		for {
@@ -121,7 +122,7 @@ func ThemeShuffler() (*widgets.List, func() string) {
 
 // FontShuffler renders a list of fonts for the user to select
 func FontShuffler() (*widgets.List, func() string) {
-	var x1, y1, x2, y2 int = 33, 2, 63, 10
+	var x1, y1, x2, y2 int = 33, 2, 63, 12
 	// create font list
 	var rows = fonts.AllFonts
 	fontsList := widgets.NewList()
@@ -138,11 +139,11 @@ func FontShuffler() (*widgets.List, func() string) {
 	fontsList.BorderStyle.Fg = ui.ColorWhite
 
 	setActiveComponent := func() string {
+		fmt.Println("FontShuffler is active")
 		uiEvents := ui.PollEvents()
 
 		for {
 			e := <-uiEvents
-
 			switch e.ID {
 			case "<C-c>", "A", "S", "W", "D":
 				return e.ID
@@ -163,7 +164,7 @@ func FontShuffler() (*widgets.List, func() string) {
 
 // FontSizeSetter renders a list of sizes for the user to select
 func FontSizeSetter() (*widgets.List, func() string) {
-	var x1, y1, x2, y2 int = 0, 11, 30, 21
+	var x1, y1, x2, y2 int = 0, 12, 30, 22
 	//create size list
 	rows := make([]string, 29, 29)
 	for i := 8; i < 37; i++ {
@@ -185,6 +186,7 @@ func FontSizeSetter() (*widgets.List, func() string) {
 	fontSize.BorderStyle.Fg = ui.ColorWhite
 
 	setActiveComponent := func() string {
+		fmt.Println("FontSizeSetter is active")
 		uiEvents := ui.PollEvents()
 		for {
 			e := <-uiEvents
@@ -221,21 +223,21 @@ func OpacityGauge() (*widgets.Gauge, func() string) {
 	gauge.LabelStyle = ui.NewStyle(ui.ColorWhite)
 
 	setActiveComponent := func() string {
+		fmt.Println("OpacityGauge is active")
 		uiEvents := ui.PollEvents()
 
 		for {
 			e := <-uiEvents
-			var newOpacity float64
 			switch e.ID {
 			case "<C-c>", "A", "S", "W", "D":
 				return e.ID
 			case "a", "d":
-				newOpacity = toggleOpacity(e.ID)
+				newOpacity := toggleOpacity(e.ID)
 				newPercent := newOpacity / float64(255) * 100
 				gauge.Percent = int(newPercent)
+				changeFloatProperty(opacityProperty, newOpacity)
 			}
 
-			changeFloatProperty(opacityProperty, newOpacity)
 			ui.Render(gauge)
 		}
 	}
