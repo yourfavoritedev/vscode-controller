@@ -22,34 +22,28 @@ func main() {
 	themeShuffler, setThemeShufflerActive := components.ThemeShuffler()
 	fontFamilyShuffler, setFontShufflerActive := components.FontShuffler()
 	fontSizeSetter, setFontSetterActive := components.FontSizeSetter()
-	TempListSetter, TempListSetterActive := components.TempListSetter()
-	ThemeShuffler2, setThemeShufflerActive2 := components.ThemeShuffler2()
 	opacityGauge, setOpacityGaugeActive := components.OpacityGauge()
 
-	// set default active component
-	var activeComponent ui.Drawable = themeShuffler
-	activeComponent.(*widgets.List).BorderStyle.Fg = ui.ColorYellow
-	activeComponent.(*widgets.List).TitleStyle.Fg = ui.ColorYellow
+	// set default current component
+	var currentComponent ui.Drawable = themeShuffler
+	currentComponent.(*widgets.List).BorderStyle.Fg = ui.ColorYellow
+	currentComponent.(*widgets.List).TitleStyle.Fg = ui.ColorYellow
 
 	// render the initial ui
 	ui.Render(
 		themeShuffler,
 		fontFamilyShuffler,
-		ThemeShuffler2,
 		fontSizeSetter,
-		TempListSetter,
 		opacityGauge,
 	)
 
 	rowOne := []ui.Drawable{
 		themeShuffler,
 		fontFamilyShuffler,
-		ThemeShuffler2,
 	}
 
 	rowTwo := []ui.Drawable{
 		fontSizeSetter,
-		TempListSetter,
 	}
 
 	rowThree := []ui.Drawable{
@@ -63,6 +57,7 @@ func main() {
 	}
 
 	// set initial position
+	var activeComponent ui.Drawable
 	var activeRowIndex, activeColumnIndex int
 
 	e := setThemeShufflerActive()
@@ -98,13 +93,25 @@ func main() {
 
 		activeComponent = componentGrid[activeRowIndex][activeColumnIndex]
 
-		// focus activeComponent via type switch
+		// deactivate current component
+		switch cc := currentComponent.(type) {
+		case *widgets.List:
+			cc.BorderStyle.Fg = ui.ColorWhite
+			cc.TitleStyle.Fg = ui.ColorWhite
+			ui.Render(cc)
+		case *widgets.Gauge:
+			cc.BorderStyle.Fg = ui.ColorWhite
+			cc.TitleStyle.Fg = ui.ColorWhite
+			ui.Render(cc)
+		}
+
+		// focus active component via type switch
 		switch ac := activeComponent.(type) {
 		case *widgets.List:
 			ac.BorderStyle.Fg = ui.ColorYellow
 			ac.TitleStyle.Fg = ui.ColorYellow
 			ui.Render(ac)
-			activeComponent = ac
+			currentComponent = ac
 
 			switch ac.Title {
 			case "Font Family":
@@ -113,18 +120,15 @@ func main() {
 				e = setThemeShufflerActive()
 			case "Font Size":
 				e = setFontSetterActive()
-			case "Temp List":
-				e = TempListSetterActive()
-			case "Themes2":
-				e = setThemeShufflerActive2()
 			}
 		case *widgets.Gauge:
 			ac.BorderStyle.Fg = ui.ColorYellow
 			ac.TitleStyle.Fg = ui.ColorYellow
 			ui.Render(ac)
-			activeComponent = ac
+			currentComponent = ac
+
 			switch ac.Title {
-			case "Opacity Gauage":
+			case "Opacity":
 				e = setOpacityGaugeActive()
 			}
 		}

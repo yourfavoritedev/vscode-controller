@@ -18,6 +18,7 @@ const (
 	themeProperty      = "workbench.colorTheme"
 	fontFamilyProperty = "editor.fontFamily"
 	fontSizeProperty   = "editor.fontSize"
+	opacityProperty    = "glassit.alpha"
 )
 
 var settingsFilePath string
@@ -38,7 +39,12 @@ func init() {
 	jsonFile = utils.GetFileJSON(settingsFilePath)
 }
 
-func changeProperty(propertyKey, selectedValue string) {
+func changeStringProperty(propertyKey, selectedValue string) {
+	jsonFile[propertyKey] = selectedValue
+	utils.WriteFileJSON(settingsFilePath, &jsonFile)
+}
+
+func changeFloatProperty(propertyKey string, selectedValue float64) {
 	jsonFile[propertyKey] = selectedValue
 	utils.WriteFileJSON(settingsFilePath, &jsonFile)
 }
@@ -51,6 +57,25 @@ func getSelectedRow(rows []string, value string) int {
 		}
 	}
 	return selectedRow
+}
+
+func toggleOpacity(key string) float64 {
+	const maxOpacity = 255
+	const lowestOpacity = 1
+	const incrementer = 5
+	currentOpacity := jsonFile[opacityProperty].(float64)
+	if key == "a" {
+		currentOpacity -= incrementer
+	} else {
+		currentOpacity += incrementer
+	}
+
+	if currentOpacity < lowestOpacity {
+		currentOpacity = lowestOpacity
+	} else if currentOpacity > maxOpacity {
+		currentOpacity = maxOpacity
+	}
+	return currentOpacity
 }
 
 // ThemeShuffler renders a list of themes for the user to select
@@ -86,7 +111,7 @@ func ThemeShuffler() (*widgets.List, func() string) {
 			}
 
 			selectedTheme := themesList.Rows[themesList.SelectedRow]
-			changeProperty(themeProperty, selectedTheme)
+			changeStringProperty(themeProperty, selectedTheme)
 
 			ui.Render(themesList)
 		}
@@ -128,7 +153,7 @@ func FontShuffler() (*widgets.List, func() string) {
 			}
 
 			selectedFont := fontsList.Rows[fontsList.SelectedRow]
-			changeProperty(fontFamilyProperty, selectedFont)
+			changeStringProperty(fontFamilyProperty, selectedFont)
 
 			ui.Render(fontsList)
 		}
@@ -173,109 +198,24 @@ func FontSizeSetter() (*widgets.List, func() string) {
 			}
 
 			selectedFont := fontSize.Rows[fontSize.SelectedRow]
-			changeProperty(fontSizeProperty, selectedFont)
+			changeStringProperty(fontSizeProperty, selectedFont)
 
 			ui.Render(fontSize)
 		}
 	}
 
 	return fontSize, setActiveComponent
-}
-
-// TempListSetter renders a list of sizes for the user to select
-func TempListSetter() (*widgets.List, func() string) {
-	var x1, y1, x2, y2 int = 33, 11, 63, 21
-	//create size list
-	rows := make([]string, 29, 29)
-	for i := 8; i < 37; i++ {
-		s := strconv.Itoa(i)
-		rows[i-8] = s
-	}
-
-	fontSize := widgets.NewList()
-	fontSize.Title = "Temp List"
-	fontSize.Rows = rows
-
-	fontSize.TextStyle = ui.NewStyle(ui.ColorWhite)
-	fontSize.WrapText = false
-	selectedRow := getSelectedRow(rows, jsonFile[fontSizeProperty].(string))
-	fontSize.SelectedRow = selectedRow
-	fontSize.SelectedRowStyle.Fg = ui.ColorYellow
-
-	fontSize.SetRect(x1, y1, x2, y2)
-	fontSize.BorderStyle.Fg = ui.ColorWhite
-
-	setActiveComponent := func() string {
-		uiEvents := ui.PollEvents()
-		for {
-			e := <-uiEvents
-			switch e.ID {
-			case "<C-c>", "A", "S", "W", "D":
-				return e.ID
-			case "s":
-				fontSize.ScrollDown()
-			case "w":
-				fontSize.ScrollUp()
-			}
-
-			selectedFont := fontSize.Rows[fontSize.SelectedRow]
-			changeProperty(fontSizeProperty, selectedFont)
-
-			ui.Render(fontSize)
-		}
-	}
-
-	return fontSize, setActiveComponent
-}
-
-// ThemeShuffler2 renders a list of themes for the user to select
-func ThemeShuffler2() (*widgets.List, func() string) {
-	var x1, y1, x2, y2 int = 66, 2, 96, 10
-	// create theme list
-	var rows = themes.AllThemes
-	themesList := widgets.NewList()
-	themesList.Title = "Themes2"
-	themesList.Rows = rows
-
-	themesList.TextStyle = ui.NewStyle(ui.ColorWhite)
-	themesList.WrapText = false
-
-	selectedRow := getSelectedRow(rows, jsonFile[themeProperty].(string))
-	themesList.SelectedRow = selectedRow
-	themesList.SelectedRowStyle.Fg = ui.ColorYellow
-	themesList.SetRect(x1, y1, x2, y2)
-	themesList.BorderStyle.Fg = ui.ColorWhite
-
-	setActiveComponent := func() string {
-		uiEvents := ui.PollEvents()
-
-		for {
-			e := <-uiEvents
-			switch e.ID {
-			case "<C-c>", "A", "S", "W", "D":
-				return e.ID
-			case "s":
-				themesList.ScrollDown()
-			case "w":
-				themesList.ScrollUp()
-			}
-
-			selectedTheme := themesList.Rows[themesList.SelectedRow]
-			changeProperty(themeProperty, selectedTheme)
-
-			ui.Render(themesList)
-		}
-	}
-	return themesList, setActiveComponent
 }
 
 // OpacityGauge renders a toggle for the user to adjust their opacity
 func OpacityGauge() (*widgets.Gauge, func() string) {
-	var x1, y1, x2, y2 int = 0, 23, 75, 27
+	var x1, y1, x2, y2 int = 0, 23, 75, 26
 	gauge := widgets.NewGauge()
 	gauge.Title = "Opacity"
 	gauge.SetRect(x1, y1, x2, y2)
-	gauge.Percent = 75
+	currentOpacity := jsonFile[opacityProperty].(float64)
+	gauge.Percent = int(currentOpacity / float64(255) * 100)
+
 	gauge.BarColor = ui.ColorYellow
 	gauge.BorderStyle.Fg = ui.ColorWhite
 	gauge.LabelStyle = ui.NewStyle(ui.ColorWhite)
@@ -285,14 +225,17 @@ func OpacityGauge() (*widgets.Gauge, func() string) {
 
 		for {
 			e := <-uiEvents
+			var newOpacity float64
 			switch e.ID {
 			case "<C-c>", "A", "S", "W", "D":
 				return e.ID
-			case "a":
-				// reduce opacity
-			case "d":
-				// increase opacity
+			case "a", "d":
+				newOpacity = toggleOpacity(e.ID)
+				newPercent := newOpacity / float64(255) * 100
+				gauge.Percent = int(newPercent)
 			}
+
+			changeFloatProperty(opacityProperty, newOpacity)
 			ui.Render(gauge)
 		}
 	}
