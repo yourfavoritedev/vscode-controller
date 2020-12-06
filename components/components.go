@@ -97,7 +97,6 @@ func ThemeShuffler() (*widgets.List, func() string) {
 	themesList.BorderStyle.Fg = ui.ColorWhite
 
 	setActiveComponent := func() string {
-		fmt.Println("ThemeShuffler is active")
 		uiEvents := ui.PollEvents()
 
 		for {
@@ -139,7 +138,6 @@ func FontShuffler() (*widgets.List, func() string) {
 	fontsList.BorderStyle.Fg = ui.ColorWhite
 
 	setActiveComponent := func() string {
-		fmt.Println("FontShuffler is active")
 		uiEvents := ui.PollEvents()
 
 		for {
@@ -158,6 +156,7 @@ func FontShuffler() (*widgets.List, func() string) {
 
 			ui.Render(fontsList)
 		}
+		return "woof"
 	}
 	return fontsList, setActiveComponent
 }
@@ -186,7 +185,6 @@ func FontSizeSetter() (*widgets.List, func() string) {
 	fontSize.BorderStyle.Fg = ui.ColorWhite
 
 	setActiveComponent := func() string {
-		fmt.Println("FontSizeSetter is active")
 		uiEvents := ui.PollEvents()
 		for {
 			e := <-uiEvents
@@ -223,7 +221,6 @@ func OpacityGauge() (*widgets.Gauge, func() string) {
 	gauge.LabelStyle = ui.NewStyle(ui.ColorWhite)
 
 	setActiveComponent := func() string {
-		fmt.Println("OpacityGauge is active")
 		uiEvents := ui.PollEvents()
 
 		for {
