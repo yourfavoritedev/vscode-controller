@@ -156,7 +156,6 @@ func FontShuffler() (*widgets.List, func() string) {
 
 			ui.Render(fontsList)
 		}
-		return "woof"
 	}
 	return fontsList, setActiveComponent
 }
