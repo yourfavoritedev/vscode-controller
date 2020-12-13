@@ -18,6 +18,7 @@ const (
 	themeProperty      = "workbench.colorTheme"
 	fontFamilyProperty = "editor.fontFamily"
 	fontSizeProperty   = "editor.fontSize"
+	opacityProperty    = "glassit.alpha"
 )
 
 var settingsFilePath string
@@ -38,7 +39,12 @@ func init() {
 	jsonFile = utils.GetFileJSON(settingsFilePath)
 }
 
-func changeProperty(propertyKey, selectedValue string) {
+func changeStringProperty(propertyKey, selectedValue string) {
+	jsonFile[propertyKey] = selectedValue
+	utils.WriteFileJSON(settingsFilePath, &jsonFile)
+}
+
+func changeFloatProperty(propertyKey string, selectedValue float64) {
 	jsonFile[propertyKey] = selectedValue
 	utils.WriteFileJSON(settingsFilePath, &jsonFile)
 }
@@ -53,97 +59,118 @@ func getSelectedRow(rows []string, value string) int {
 	return selectedRow
 }
 
+func toggleOpacity(key string) float64 {
+	const maxOpacity = 255
+	const lowestOpacity = 1
+	const incrementer = 5
+	currentOpacity := jsonFile[opacityProperty].(float64)
+	if key == "a" {
+		currentOpacity -= incrementer
+	} else {
+		currentOpacity += incrementer
+	}
+
+	if currentOpacity < lowestOpacity {
+		currentOpacity = lowestOpacity
+	} else if currentOpacity > maxOpacity {
+		currentOpacity = maxOpacity
+	}
+	return currentOpacity
+}
+
 // ThemeShuffler renders a list of themes for the user to select
-func ThemeShuffler(eventChannel chan string) (*widgets.List, func() string) {
-	var x1, y1, x2, y2 int = 0, 2, 30, 10
+func ThemeShuffler() (*widgets.List, func() string) {
+	var x1, y1, x2, y2 int = 0, 2, 30, 12
 	// create theme list
 	var rows = themes.AllThemes
 	themesList := widgets.NewList()
 	themesList.Title = "Themes"
 	themesList.Rows = rows
 
-	themesList.TextStyle = ui.NewStyle(ui.ColorYellow)
+	themesList.TextStyle = ui.NewStyle(ui.ColorWhite)
 	themesList.WrapText = false
 
-	selectedRow := getSelectedRow(rows, jsonFile[themeProperty].(string))
+	var selectedRow int
+	if jsonFile[themeProperty] != nil {
+		selectedRow = getSelectedRow(rows, jsonFile[themeProperty].(string))
+	}
+
 	themesList.SelectedRow = selectedRow
+	themesList.SelectedRowStyle.Fg = ui.ColorYellow
 	themesList.SetRect(x1, y1, x2, y2)
 	themesList.BorderStyle.Fg = ui.ColorWhite
 
-	setActiveWidget := func() string {
+	setActiveComponent := func() string {
 		uiEvents := ui.PollEvents()
 
 		for {
-			// receive value from channel and set to e
 			e := <-uiEvents
 			switch e.ID {
-			case "q", "<C-c>":
+			case "<C-c>", "A", "S", "W", "D":
 				return e.ID
-			case "j", "<Down>":
+			case "s":
 				themesList.ScrollDown()
-			case "k", "<Up>":
+			case "w":
 				themesList.ScrollUp()
-			case "<Right>", "<Tab>":
-				go func() { eventChannel <- e.ID }()
-				return e.ID
 			}
 
 			selectedTheme := themesList.Rows[themesList.SelectedRow]
-			changeProperty(themeProperty, selectedTheme)
+			changeStringProperty(themeProperty, selectedTheme)
 
 			ui.Render(themesList)
 		}
 	}
-	return themesList, setActiveWidget
+	return themesList, setActiveComponent
 }
 
 // FontShuffler renders a list of fonts for the user to select
-func FontShuffler(eventChannel chan string) (*widgets.List, func() string) {
-	var x1, y1, x2, y2 int = 33, 2, 63, 10
+func FontShuffler() (*widgets.List, func() string) {
+	var x1, y1, x2, y2 int = 33, 2, 63, 12
 	// create font list
 	var rows = fonts.AllFonts
 	fontsList := widgets.NewList()
 	fontsList.Title = "Font Family"
 	fontsList.Rows = rows
 
-	fontsList.TextStyle = ui.NewStyle(ui.ColorYellow)
+	fontsList.TextStyle = ui.NewStyle(ui.ColorWhite)
 	fontsList.WrapText = false
 
-	selectedRow := getSelectedRow(rows, jsonFile[fontFamilyProperty].(string))
+	var selectedRow int
+	if jsonFile[fontFamilyProperty] != nil {
+		selectedRow = getSelectedRow(rows, jsonFile[fontFamilyProperty].(string))
+	}
+
 	fontsList.SelectedRow = selectedRow
+	fontsList.SelectedRowStyle.Fg = ui.ColorYellow
 	fontsList.SetRect(x1, y1, x2, y2)
 	fontsList.BorderStyle.Fg = ui.ColorWhite
 
-	setActiveWidget := func() string {
+	setActiveComponent := func() string {
 		uiEvents := ui.PollEvents()
 
 		for {
-			// receive value from channel and set to e
 			e := <-uiEvents
 			switch e.ID {
-			case "q", "<C-c>":
+			case "<C-c>", "A", "S", "W", "D":
 				return e.ID
-			case "j", "<Down>":
+			case "s":
 				fontsList.ScrollDown()
-			case "k", "<Up>":
+			case "w":
 				fontsList.ScrollUp()
-			case "<Left>", "<Tab>":
-				go func() { eventChannel <- e.ID }()
-				return e.ID
 			}
 
 			selectedFont := fontsList.Rows[fontsList.SelectedRow]
-			changeProperty(fontFamilyProperty, selectedFont)
+			changeStringProperty(fontFamilyProperty, selectedFont)
 
 			ui.Render(fontsList)
 		}
 	}
-	return fontsList, setActiveWidget
+	return fontsList, setActiveComponent
 }
 
 // FontSizeSetter renders a list of sizes for the user to select
-func FontSizeSetter(eventChannel chan string) (*widgets.List, func() string) {
-	var x1, y1, x2, y2 int = 66, 2, 96, 10
+func FontSizeSetter() (*widgets.List, func() string) {
+	var x1, y1, x2, y2 int = 0, 12, 30, 22
 	//create size list
 	rows := make([]string, 29, 29)
 	for i := 8; i < 37; i++ {
@@ -155,38 +182,78 @@ func FontSizeSetter(eventChannel chan string) (*widgets.List, func() string) {
 	fontSize.Title = "Font Size"
 	fontSize.Rows = rows
 
-	fontSize.TextStyle = ui.NewStyle(ui.ColorYellow)
+	fontSize.TextStyle = ui.NewStyle(ui.ColorWhite)
 	fontSize.WrapText = false
 
-	selectedRow := getSelectedRow(rows, jsonFile[fontSizeProperty].(string))
+	var selectedRow int
+	if jsonFile[fontSizeProperty] != nil {
+		selectedRow = getSelectedRow(rows, jsonFile[fontSizeProperty].(string))
+	}
+
 	fontSize.SelectedRow = selectedRow
+	fontSize.SelectedRowStyle.Fg = ui.ColorYellow
 	fontSize.SetRect(x1, y1, x2, y2)
 	fontSize.BorderStyle.Fg = ui.ColorWhite
 
-	setActiveWidget := func() string {
+	setActiveComponent := func() string {
 		uiEvents := ui.PollEvents()
-
 		for {
-			// receive value from channel and set to e
 			e := <-uiEvents
 			switch e.ID {
-			case "q", "<C-c>":
+			case "<C-c>", "A", "S", "W", "D":
 				return e.ID
-			case "j", "<Down>":
+			case "s":
 				fontSize.ScrollDown()
-			case "k", "<Up>":
+			case "w":
 				fontSize.ScrollUp()
-			case "<Left>", "<Right>":
-				go func() { eventChannel <- e.ID }()
-				return e.ID
 			}
 
 			selectedFont := fontSize.Rows[fontSize.SelectedRow]
-			changeProperty(fontSizeProperty, selectedFont)
+			changeStringProperty(fontSizeProperty, selectedFont)
 
 			ui.Render(fontSize)
 		}
 	}
 
-	return fontSize, setActiveWidget
+	return fontSize, setActiveComponent
+}
+
+// OpacityGauge renders a toggle for the user to adjust their opacity
+func OpacityGauge() (*widgets.Gauge, func() string) {
+	var x1, y1, x2, y2 int = 0, 23, 75, 26
+	gauge := widgets.NewGauge()
+	gauge.Title = "Opacity"
+	gauge.SetRect(x1, y1, x2, y2)
+
+	var currentOpacity float64
+	if jsonFile[opacityProperty] != nil {
+		currentOpacity = jsonFile[opacityProperty].(float64)
+	}
+
+	gauge.Percent = int(currentOpacity / float64(255) * 100)
+
+	gauge.BarColor = ui.ColorYellow
+	gauge.BorderStyle.Fg = ui.ColorWhite
+	gauge.LabelStyle = ui.NewStyle(ui.ColorWhite)
+
+	setActiveComponent := func() string {
+		uiEvents := ui.PollEvents()
+
+		for {
+			e := <-uiEvents
+			switch e.ID {
+			case "<C-c>", "A", "S", "W", "D":
+				return e.ID
+			case "a", "d":
+				newOpacity := toggleOpacity(e.ID)
+				newPercent := newOpacity / float64(255) * 100
+				gauge.Percent = int(newPercent)
+				changeFloatProperty(opacityProperty, newOpacity)
+			}
+
+			ui.Render(gauge)
+		}
+	}
+
+	return gauge, setActiveComponent
 }
