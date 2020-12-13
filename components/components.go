@@ -90,7 +90,11 @@ func ThemeShuffler() (*widgets.List, func() string) {
 	themesList.TextStyle = ui.NewStyle(ui.ColorWhite)
 	themesList.WrapText = false
 
-	selectedRow := getSelectedRow(rows, jsonFile[themeProperty].(string))
+	var selectedRow int
+	if jsonFile[themeProperty] != nil {
+		selectedRow = getSelectedRow(rows, jsonFile[themeProperty].(string))
+	}
+
 	themesList.SelectedRow = selectedRow
 	themesList.SelectedRowStyle.Fg = ui.ColorYellow
 	themesList.SetRect(x1, y1, x2, y2)
@@ -131,7 +135,11 @@ func FontShuffler() (*widgets.List, func() string) {
 	fontsList.TextStyle = ui.NewStyle(ui.ColorWhite)
 	fontsList.WrapText = false
 
-	selectedRow := getSelectedRow(rows, jsonFile[fontFamilyProperty].(string))
+	var selectedRow int
+	if jsonFile[fontFamilyProperty] != nil {
+		selectedRow = getSelectedRow(rows, jsonFile[fontFamilyProperty].(string))
+	}
+
 	fontsList.SelectedRow = selectedRow
 	fontsList.SelectedRowStyle.Fg = ui.ColorYellow
 	fontsList.SetRect(x1, y1, x2, y2)
@@ -177,7 +185,11 @@ func FontSizeSetter() (*widgets.List, func() string) {
 	fontSize.TextStyle = ui.NewStyle(ui.ColorWhite)
 	fontSize.WrapText = false
 
-	selectedRow := getSelectedRow(rows, jsonFile[fontSizeProperty].(string))
+	var selectedRow int
+	if jsonFile[fontSizeProperty] != nil {
+		selectedRow = getSelectedRow(rows, jsonFile[fontSizeProperty].(string))
+	}
+
 	fontSize.SelectedRow = selectedRow
 	fontSize.SelectedRowStyle.Fg = ui.ColorYellow
 	fontSize.SetRect(x1, y1, x2, y2)
@@ -212,7 +224,12 @@ func OpacityGauge() (*widgets.Gauge, func() string) {
 	gauge := widgets.NewGauge()
 	gauge.Title = "Opacity"
 	gauge.SetRect(x1, y1, x2, y2)
-	currentOpacity := jsonFile[opacityProperty].(float64)
+
+	var currentOpacity float64
+	if jsonFile[opacityProperty] != nil {
+		currentOpacity = jsonFile[opacityProperty].(float64)
+	}
+
 	gauge.Percent = int(currentOpacity / float64(255) * 100)
 
 	gauge.BarColor = ui.ColorYellow
