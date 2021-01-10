@@ -1,4 +1,4 @@
-package components
+package ui
 
 import (
 	"fmt"
@@ -9,16 +9,9 @@ import (
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
 	"github.com/joho/godotenv"
-	"github.com/yourfavoritedev/vscode-controller/fonts"
-	"github.com/yourfavoritedev/vscode-controller/themes"
+	"github.com/yourfavoritedev/vscode-controller/internal/fonts"
+	"github.com/yourfavoritedev/vscode-controller/internal/themes"
 	utils "github.com/yourfavoritedev/vscode-controller/utils"
-)
-
-const (
-	themeProperty      = "workbench.colorTheme"
-	fontFamilyProperty = "editor.fontFamily"
-	fontSizeProperty   = "editor.fontSize"
-	opacityProperty    = "glassit.alpha"
 )
 
 var settingsFilePath string
@@ -41,12 +34,12 @@ func init() {
 
 func changeStringProperty(propertyKey, selectedValue string) {
 	jsonFile[propertyKey] = selectedValue
-	utils.WriteFileJSON(settingsFilePath, &jsonFile)
+	// utils.WriteFileJSON(settingsFilePath, &jsonFile)
 }
 
 func changeFloatProperty(propertyKey string, selectedValue float64) {
 	jsonFile[propertyKey] = selectedValue
-	utils.WriteFileJSON(settingsFilePath, &jsonFile)
+	// utils.WriteFileJSON(settingsFilePath, &jsonFile)
 }
 
 func getSelectedRow(rows []string, value string) int {
@@ -59,27 +52,27 @@ func getSelectedRow(rows []string, value string) int {
 	return selectedRow
 }
 
-func toggleOpacity(key string) float64 {
-	const maxOpacity = 255
-	const lowestOpacity = 1
-	const incrementer = 5
-	currentOpacity := jsonFile[opacityProperty].(float64)
-	if key == "a" {
-		currentOpacity -= incrementer
-	} else {
-		currentOpacity += incrementer
-	}
+// func toggleOpacity(key string) float64 {
+// 	const maxOpacity = 255
+// 	const lowestOpacity = 1
+// 	const incrementer = 5
+// 	currentOpacity := jsonFile[opacityProperty].(float64)
+// 	if key == "a" {
+// 		currentOpacity -= incrementer
+// 	} else {
+// 		currentOpacity += incrementer
+// 	}
 
-	if currentOpacity < lowestOpacity {
-		currentOpacity = lowestOpacity
-	} else if currentOpacity > maxOpacity {
-		currentOpacity = maxOpacity
-	}
-	return currentOpacity
-}
+// 	if currentOpacity < lowestOpacity {
+// 		currentOpacity = lowestOpacity
+// 	} else if currentOpacity > maxOpacity {
+// 		currentOpacity = maxOpacity
+// 	}
+// 	return currentOpacity
+// }
 
 // ThemeShuffler renders a list of themes for the user to select
-func ThemeShuffler() (*widgets.List, func() string) {
+func themeShuffler() (*widgets.List, func() string) {
 	var x1, y1, x2, y2 int = 0, 2, 30, 12
 	// create theme list
 	var rows = themes.AllThemes
@@ -168,8 +161,8 @@ func FontShuffler() (*widgets.List, func() string) {
 	return fontsList, setActiveComponent
 }
 
-// FontSizeSetter renders a list of sizes for the user to select
-func FontSizeSetter() (*widgets.List, func() string) {
+// fontSizeSetter renders a list of sizes for the user to select
+func fontSizeSetter() (*widgets.List, func() string) {
 	var x1, y1, x2, y2 int = 0, 12, 30, 22
 	//create size list
 	rows := make([]string, 29, 29)
@@ -219,7 +212,7 @@ func FontSizeSetter() (*widgets.List, func() string) {
 }
 
 // OpacityGauge renders a toggle for the user to adjust their opacity
-func OpacityGauge() (*widgets.Gauge, func() string) {
+func opacityGauge() (*widgets.Gauge, func() string) {
 	var x1, y1, x2, y2 int = 0, 23, 75, 26
 	gauge := widgets.NewGauge()
 	gauge.Title = "Opacity"
@@ -245,10 +238,10 @@ func OpacityGauge() (*widgets.Gauge, func() string) {
 			case "<C-c>", "A", "S", "W", "D":
 				return e.ID
 			case "a", "d":
-				newOpacity := toggleOpacity(e.ID)
-				newPercent := newOpacity / float64(255) * 100
-				gauge.Percent = int(newPercent)
-				changeFloatProperty(opacityProperty, newOpacity)
+				// newOpacity := toggleOpacity(e.ID)
+				// newPercent := newOpacity / float64(255) * 100
+				// gauge.Percent = int(newPercent)
+				// changeFloatProperty(opacityProperty, newOpacity)
 			}
 
 			ui.Render(gauge)

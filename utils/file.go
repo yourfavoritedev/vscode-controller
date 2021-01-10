@@ -2,6 +2,7 @@ package file
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
@@ -26,13 +27,22 @@ func GetFileJSON(filepath string) map[string]interface{} {
 }
 
 // WriteFileJSON converts newContent into json to be written to the filepath
-func WriteFileJSON(filepath string, newContent interface{}) {
+func WriteFileJSON(newContent *map[string]interface{}) {
+	var settingsFilePath string
+	vsCodePath, ok := os.LookupEnv("VSCODE_PATH")
+
+	if !ok {
+		log.Fatalln("There was an error finding your vscode path")
+	}
+
+	settingsFilePath = fmt.Sprintf("%s/%s", vsCodePath, "settings.json")
+
 	newJSON, err := json.Marshal(newContent)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = ioutil.WriteFile(filepath, newJSON, 0644)
+	err = ioutil.WriteFile(settingsFilePath, newJSON, 0644)
 	if err != nil {
 		log.Fatal(err)
 	}

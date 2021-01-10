@@ -6,7 +6,7 @@ import (
 
 	ui "github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
-	components "github.com/yourfavoritedev/vscode-controller/components"
+	components "github.com/yourfavoritedev/vscode-controller/internal/components"
 )
 
 func init() {
